@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/rand"
 	"mime/multipart"
+	"strconv"
 	"time"
 )
 
@@ -34,4 +35,17 @@ func HashOfFile(fileHeader *multipart.FileHeader) (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(sha.Sum(nil)), nil
+}
+
+//StringsToFloats 字符串转浮点数
+func StringsToFloats(strings ...string) ([]float64, error) {
+	var slice []float64
+	for _, v := range strings {
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return nil, err
+		}
+		slice = append(slice, f)
+	}
+	return slice, nil
 }

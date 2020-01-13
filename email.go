@@ -7,28 +7,38 @@ import (
 	"net/smtp"
 )
 
-//MailSender ...
-type MailSender struct {
-	Host     string //服务器
-	Port     int    //端口
-	Username string //用户名
-	Password string //密码
-	Form     string //发送者
-	To       string //接收者
-	Subject  string //主题
-	Content  string //内容
+//IMailSender 邮件发送器接口
+type IMailSender interface {
+	SendWithTLS(from, to, subject, content string) error
 }
 
-//SendWithTLS ...
-func (m *MailSender) SendWithTLS() error {
+//mailSender 邮件发送器
+type mailSender struct {
+	Host     string //服务器
+	Port     string //端口
+	Username string //用户名
+	Password string //密码
+}
 
-	//data
+//NewMailSender 初始化邮件发送器(邮件服务器，端口，用户名，密码)
+func NewMailSender(host, port, username, password string) IMailSender {
+	return &mailSender{
+		Host:     host,
+		Port:     port,
+		Username: username,
+		Password: password,
+	}
+}
+
+//SendWithTLS 加密发送(发送者，接收者，主题，内容)
+func (m *mailSender) SendWithTLS(from, to, subject, content string) error {
+
 	header := make(map[string]string)
-	header["From"] = m.Form + "<" + m.Username + ">"
-	header["To"] = m.To
-	header["Subject"] = m.Subject
+	header["From"] = from + "<" + m.Username + ">"
+	header["To"] = to
+	header["Subject"] = subject
 	header["Content-Type"] = "text/html;chartset=UTF-8"
-	body := m.Content
+	body := content
 
 	msg := ""
 	for k, v := range header {
@@ -37,14 +47,13 @@ func (m *MailSender) SendWithTLS() error {
 	msg += "\r\n" + body
 
 	auth := smtp.PlainAuth("", m.Username, m.Password, m.Host)
-	err := mailSendWithTLS(fmt.Sprintf("%s:%d", m.Host, m.Port), auth, m.Username, []string{m.To}, []byte(msg))
+	err := mailSendWithTLS(fmt.Sprintf("%s:%s", m.Host, m.Port), auth, m.Username, []string{to}, []byte(msg))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-//mailSendWithTLS ...
 func mailSendWithTLS(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 
 	conn, err := tls.Dial("tcp", addr, nil)
