@@ -11,19 +11,37 @@ import (
 	"time"
 )
 
+//IFiling 文件处理器接口
+type IFiling interface {
+	SuffixOfFile(fileHeader *multipart.FileHeader) string
+	NewFilePath(dir string) string
+	CheckUploadFile(fileHeader *multipart.FileHeader, fileType string) error
+	SaveUploadFile(uniqueNumber uint, filePath, savePath /*root*/ string, fileHeaders ...*multipart.FileHeader) ([]string, error)
+	ReadDirItems(dir string, s *[]string) error
+}
+
+//NewFiling 初始化文件处理器
+func NewFiling() IFiling {
+	return &filing{}
+}
+
+//filing 文件处理器
+type filing struct {
+}
+
 //SuffixOfFile 获取文件后缀
-func SuffixOfFile(fileHeader *multipart.FileHeader) string {
+func (f *filing) SuffixOfFile(fileHeader *multipart.FileHeader) string {
 	s := strings.Split(fileHeader.Filename, ".")
 	return "." + s[len(s)-1]
 }
 
 //NewFilePath 生成文件目录
-func NewFilePath(dir string) string {
+func (f *filing) NewFilePath(dir string) string {
 	return dir + "/" + time.Now().Format("2006/01") + "/"
 }
 
 //CheckUploadFile 检查上传文件：doc/img
-func CheckUploadFile(fileHeader *multipart.FileHeader, fileType string) error {
+func (f *filing) CheckUploadFile(fileHeader *multipart.FileHeader, fileType string) error {
 	switch fileType {
 	case "doc":
 		if fileHeader.Size > 6000000 {
@@ -46,10 +64,10 @@ func CheckUploadFile(fileHeader *multipart.FileHeader, fileType string) error {
 }
 
 //SaveUploadFile 保存上传文件
-func SaveUploadFile(uniqueNumber uint, filePath, savePath /*root*/ string, fileHeaders ...*multipart.FileHeader) ([]string, error) {
+func (f *filing) SaveUploadFile(uniqueNumber uint, filePath, savePath /*root*/ string, fileHeaders ...*multipart.FileHeader) ([]string, error) {
 	var fileNames []string
 	for _, fileHeader := range fileHeaders {
-		fileHash, err := HashOfFile(fileHeader)
+		fileHash, err := NewTinyTools().SHA256OfFile(fileHeader)
 		if err != nil {
 			return nil, err
 		}
@@ -59,9 +77,9 @@ func SaveUploadFile(uniqueNumber uint, filePath, savePath /*root*/ string, fileH
 		var newFileName string
 		if uniqueNumber != 0 {
 			uniqueNumber++
-			newFileName = HashOfString(strconv.Itoa(int(uniqueNumber))) + SuffixOfFile(fileHeader)
+			newFileName = NewTinyTools().SHA256OfString(strconv.Itoa(int(uniqueNumber))) + f.SuffixOfFile(fileHeader)
 		}
-		newFileName = fileHash + SuffixOfFile(fileHeader)
+		newFileName = fileHash + f.SuffixOfFile(fileHeader)
 
 		src, err := fileHeader.Open()
 		if err != nil {
@@ -84,7 +102,7 @@ func SaveUploadFile(uniqueNumber uint, filePath, savePath /*root*/ string, fileH
 }
 
 //ReadDirItems 递归遍历目录项
-func ReadDirItems(dir string, s *[]string) error {
+func (f *filing) ReadDirItems(dir string, s *[]string) error {
 	file, err := os.OpenFile(dir, os.O_RDONLY, os.ModeDir)
 	if err != nil {
 		log.Println(err)
@@ -94,7 +112,7 @@ func ReadDirItems(dir string, s *[]string) error {
 	for _, fileInfo := range fileInfos {
 		if fileInfo.IsDir() {
 			newDir := dir + "/" + fileInfo.Name()
-			if err := ReadDirItems(newDir, s); err != nil {
+			if err := f.ReadDirItems(newDir, s); err != nil {
 				log.Println(err)
 				return err
 			}
