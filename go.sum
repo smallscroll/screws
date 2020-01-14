@@ -1,6 +1,4 @@
 github.com/aliyun/alibaba-cloud-sdk-go v1.60.327/go.mod h1:mNZkuqaeM5UCiAdkV4r+lrheu8Q5fe/487bRFrGYZ8A=
-github.com/astropages/screws v0.0.1 h1:tOeaEVUp8mvOe0i+/uQ7Pdm98GHN+4ibqFZ1YQj+2Gk=
-github.com/astropages/screws v0.0.1/go.mod h1:cw+u4xgjXLtcIBC2T6INu1Cua0vZBdJH5Uh2iwO4OGE=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/gin-contrib/sse v0.1.0/go.mod h1:RHrZQHXnP2xjPF+u1gW/2HnVO7nvIa9PG3Gm+fLHvGI=
