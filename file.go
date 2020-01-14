@@ -1,7 +1,7 @@
 package screws
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
@@ -15,7 +15,7 @@ import (
 type IFiling interface {
 	SuffixOfFile(fileHeader *multipart.FileHeader) string
 	NewFilePath(dir string) string
-	CheckUploadFile(fileHeader *multipart.FileHeader, fileType string) error
+	CheckUploadFile(fileHeader *multipart.FileHeader, requiredSize int64, requiredType /*no point*/ ...string) error
 	SaveUploadFile(uniqueNumber uint, filePath, savePath /*root*/ string, fileHeaders ...*multipart.FileHeader) ([]string, error)
 	ReadDirItems(dir string, s *[]string) error
 }
@@ -41,24 +41,18 @@ func (f *filing) NewFilePath(dir string) string {
 }
 
 //CheckUploadFile 检查上传文件：doc/img
-func (f *filing) CheckUploadFile(fileHeader *multipart.FileHeader, fileType string) error {
-	switch fileType {
-	case "doc":
-		if fileHeader.Size > 6000000 {
-			return errors.New(fileHeader.Filename + "-File size is too large: >6M")
+func (f *filing) CheckUploadFile(fileHeader *multipart.FileHeader, requiredSize int64, requiredType /*no point*/ ...string) error {
+	if fileHeader.Size > requiredSize {
+		return fmt.Errorf("%s is too large: > %d MB", fileHeader.Filename, requiredSize/1000000)
+	}
+	validType := false
+	for _, v := range requiredType {
+		if strings.HasSuffix(strings.ToLower(fileHeader.Filename), "."+strings.ToLower(v)) {
+			validType = true
 		}
-		if !strings.HasSuffix(fileHeader.Filename, ".jpg") && !strings.HasSuffix(fileHeader.Filename, ".jpeg") && !strings.HasSuffix(fileHeader.Filename, ".png") && !strings.HasSuffix(fileHeader.Filename, ".pdf") {
-			return errors.New(fileHeader.Filename + "-File format error: jpg/jpeg/png/pdf")
-		}
-	case "img":
-		if fileHeader.Size > 4000000 {
-			return errors.New(fileHeader.Filename + "-File size is too large: >4M")
-		}
-		if !strings.HasSuffix(fileHeader.Filename, ".jpg") && !strings.HasSuffix(fileHeader.Filename, ".jpeg") && !strings.HasSuffix(fileHeader.Filename, ".png") {
-			return errors.New(fileHeader.Filename + "-File format error: jpg/jpeg/png")
-		}
-	default:
-		return errors.New("fileType not exist")
+	}
+	if !validType {
+		return fmt.Errorf("%s format error: need %s", fileHeader.Filename, strings.Join(requiredType, "/"))
 	}
 	return nil
 }
