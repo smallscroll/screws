@@ -1,5 +1,10 @@
 package screws
 
+//IPage 分页器接口
+type IPage interface {
+	Split()
+}
+
 //Page 分页器
 type Page struct {
 	Count           int //总记录数
@@ -14,7 +19,7 @@ type Page struct {
 }
 
 //NewPage 初始化分页器(总记录数，每页显示记录数)
-func NewPage(count int, pageSize int) *Page {
+func NewPage(count int, pageSize int) IPage {
 	return &Page{
 		Count:           count,
 		PageSize:        pageSize,

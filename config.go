@@ -19,14 +19,6 @@ type IConfiguration interface {
 	SendAlarmWithEmail(from, to, subject, content string)
 }
 
-//configuration 配置
-type configuration struct {
-	Parameters map[string]interface{}
-	ConfigFile string //json
-	LogFile    string
-	AlarmChan  chan [4]string
-}
-
 //NewConfiguration 初始化配置(配置文件，日志文件)
 func NewConfiguration(configFile, LogFile string) IConfiguration {
 	return &configuration{
@@ -34,6 +26,14 @@ func NewConfiguration(configFile, LogFile string) IConfiguration {
 		LogFile:    LogFile,
 		AlarmChan:  make(chan [4]string),
 	}
+}
+
+//configuration 配置
+type configuration struct {
+	Parameters map[string]interface{}
+	ConfigFile string //json
+	LogFile    string
+	AlarmChan  chan [4]string
 }
 
 //LoadConfig 加载配置

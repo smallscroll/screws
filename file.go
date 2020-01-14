@@ -46,7 +46,7 @@ func CheckUploadFile(fileHeader *multipart.FileHeader, fileType string) error {
 }
 
 //SaveUploadFile 保存上传文件
-func SaveUploadFile(uniqueNumber uint, filePath, savePath string, fileHeaders ...*multipart.FileHeader) ([]string, error) {
+func SaveUploadFile(uniqueNumber uint, filePath, savePath /*root*/ string, fileHeaders ...*multipart.FileHeader) ([]string, error) {
 	var fileNames []string
 	for _, fileHeader := range fileHeaders {
 		fileHash, err := HashOfFile(fileHeader)

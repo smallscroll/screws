@@ -8,16 +8,33 @@ import (
 	"io"
 )
 
-//Crypto ...
-type Crypto struct {
-	Key        string
-	Plaintext  string
-	Ciphertext string
+//ICrypto 加密器接口
+type ICrypto interface {
+	GetKey() string
+	AESCTREncrypt(plaintextString string) (string, error)
+	AESCTRDecrypt(ciphertextString string) (string, error)
+}
+
+//NewCrypto 初始化加密器
+func NewCrypto(key string) ICrypto {
+	return &crypto{
+		Key: key,
+	}
+}
+
+//crypto 加密器
+type crypto struct {
+	Key string
+}
+
+//GetKey 查询密钥
+func (c *crypto) GetKey() string {
+	return c.Key
 }
 
 //AESCTREncrypt AES-CTR加密
-func (c *Crypto) AESCTREncrypt() (string, error) {
-	plaintext := c.Plaintext
+func (c *crypto) AESCTREncrypt(plaintextString string) (string, error) {
+	plaintext := plaintextString
 	block, err := aes.NewCipher([]byte(c.Key))
 	if err != nil {
 		return "", err
@@ -33,8 +50,8 @@ func (c *Crypto) AESCTREncrypt() (string, error) {
 }
 
 //AESCTRDecrypt AES-CTR解密
-func (c *Crypto) AESCTRDecrypt() (string, error) {
-	ciphertext, err := hex.DecodeString(c.Ciphertext)
+func (c *crypto) AESCTRDecrypt(ciphertextString string) (string, error) {
+	ciphertext, err := hex.DecodeString(ciphertextString)
 	if err != nil {
 		return "", err
 	}
