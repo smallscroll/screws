@@ -98,14 +98,17 @@ func (f *filing) SaveUploadFile(uniqueNumber uint, rootDir, filePath string, fil
 
 //DeleteUploadedFile  删除已上传文件
 func (f *filing) DeleteUploadedFile(rootDir string, filePaths ...string) error {
-	var e error
+	e := ""
 	for _, filePath := range filePaths {
 		if err := os.Remove(rootDir + filePath); err != nil {
-			e = errors.New(e.Error() + ";" + err.Error())
+			e = e + err.Error()
 			continue
 		}
 	}
-	return e
+	if e != "" {
+		return errors.New(e)
+	}
+	return nil
 }
 
 //ReadDirItems 递归遍历目录项
