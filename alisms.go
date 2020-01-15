@@ -42,7 +42,6 @@ type alismsReply struct {
 
 //SendCaptcha 验证码
 func (as *alismsSender) SendCaptcha(phoneNumbers, content string) error {
-
 	client, err := sdk.NewClientWithAccessKey("cn-hangzhou", as.AccessKeyID, as.AccessKeySecret)
 	if err != nil {
 		return err
@@ -57,7 +56,7 @@ func (as *alismsSender) SendCaptcha(phoneNumbers, content string) error {
 	request.QueryParams["PhoneNumbers"] = phoneNumbers
 	request.QueryParams["SignName"] = as.SignName
 	request.QueryParams["TemplateCode"] = as.TemplateCode
-	request.QueryParams["TemplateParam"] = fmt.Sprintf(`"code":"%s"`, content)
+	request.QueryParams["TemplateParam"] = fmt.Sprintf(`{"code":"%s"}`, content)
 
 	response, err := client.ProcessCommonRequest(request)
 	if err != nil {
