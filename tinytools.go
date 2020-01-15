@@ -21,6 +21,7 @@ type ITinyTools interface {
 	CheckText(str, exp string) bool
 	CheckDatetime(str ...string) ([]*time.Time, error)
 	CheckTimestamp(str ...string) ([]*time.Time, error)
+	CheckDatetimeToTimestamp(str ...string) ([]int64, error)
 	CheckUserAgent(userAgent string) string
 }
 
@@ -105,6 +106,19 @@ func (t *tinyTools) CheckTimestamp(str ...string) ([]*time.Time, error) {
 		times = append(times, &t)
 	}
 	return times, nil
+}
+
+//CheckDatetimeToTimestamp 检查日期时间字符串格式并转换为时间戳
+func (t *tinyTools) CheckDatetimeToTimestamp(str ...string) ([]int64, error) {
+	var timestamps []int64
+	for _, v := range str {
+		time, err := time.ParseInLocation("2006-01-02 15:04:05", v, time.Local)
+		if err != nil {
+			return nil, err
+		}
+		timestamps = append(timestamps, time.Unix())
+	}
+	return timestamps, nil
 }
 
 //CheckUserAgent 检查用户客户端类型

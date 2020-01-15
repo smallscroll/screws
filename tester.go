@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
 )
 
 //APITester ...
@@ -31,6 +30,18 @@ func (at *APITester) LoadHTTPRequestWithJSON() error {
 	return nil
 }
 
+//RunTest ...
+func (at *APITester) RunTest(method string, url string, requestHeader map[string]string, data interface{}) {
+	at.Method = method
+	at.URL = url
+	at.RequestHeader = requestHeader
+	at.RequestData = data
+	if err := at.LoadHTTPRequestWithJSON(); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Request:%v %v %v\nResponse: %v\n", at.Method, at.URL, at.RequestHeader, at.ResponseData)
+}
+
 //loadHTTPRequest ...
 func loadHTTPRequest(method string, url string, body []byte, head map[string]string) (string, error) {
 	request, err := http.NewRequest(method, url, bytes.NewReader(body))
@@ -50,17 +61,4 @@ func loadHTTPRequest(method string, url string, body []byte, head map[string]str
 		return "", err
 	}
 	return fmt.Sprintf("%v %v %v", response.Status, response.Header, string(responseBodyByte)), nil
-}
-
-//MakeTimestamp ...
-func (at *APITester) MakeTimestamp(datetime ...string) []int64 {
-	var timestamps []int64
-	for _, v := range datetime {
-		time, err := time.ParseInLocation("2006-01-02 15:04:05", v, time.Local)
-		if err != nil {
-			log.Fatal(err)
-		}
-		timestamps = append(timestamps, time.Unix())
-	}
-	return timestamps
 }

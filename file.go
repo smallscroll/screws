@@ -1,6 +1,7 @@
 package screws
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -14,9 +15,10 @@ import (
 //IFiling 文件处理器接口
 type IFiling interface {
 	SuffixOfFile(fileHeader *multipart.FileHeader) string
-	NewFilePath(dir string) string
-	CheckUploadFile(fileHeader *multipart.FileHeader, requiredSize int64, requiredType /*no point*/ ...string) error
-	SaveUploadFile(uniqueNumber uint, filePath, savePath /*root*/ string, fileHeaders ...*multipart.FileHeader) ([]string, error)
+	DateDir(dir string) string
+	CheckUploadFile(requiredSize int64, requiredSuffix /* separate with "/" like ".jpg/.png" */ string, fileHeaders ...*multipart.FileHeader) error
+	SaveUploadFile(uniqueNumber uint, rootDir, filePath string, fileHeaders ...*multipart.FileHeader) ([]string, error)
+	DeleteUploadedFile(rootDir string, filePaths ...string) error
 	ReadDirItems(dir string, s *[]string) error
 }
 
@@ -32,40 +34,39 @@ type filing struct {
 //SuffixOfFile 获取文件后缀
 func (f *filing) SuffixOfFile(fileHeader *multipart.FileHeader) string {
 	s := strings.Split(fileHeader.Filename, ".")
-	return "." + s[len(s)-1]
+	if len(s) < 2 {
+		return ".unknown"
+	}
+	return "." + strings.ToLower(s[len(s)-1])
 }
 
-//NewFilePath 生成文件目录
-func (f *filing) NewFilePath(dir string) string {
-	return dir + "/" + time.Now().Format("2006/01") + "/"
+//DateDir 日期目录: "/dir/2006/01"
+func (f *filing) DateDir(dir string) string {
+	return dir + "/" + time.Now().Format("2006/01")
 }
 
 //CheckUploadFile 检查上传文件：doc/img
-func (f *filing) CheckUploadFile(fileHeader *multipart.FileHeader, requiredSize int64, requiredType /*no point*/ ...string) error {
-	if fileHeader.Size > requiredSize {
-		return fmt.Errorf("%s is too large: > %d MB", fileHeader.Filename, requiredSize/1000000)
-	}
-	validType := false
-	for _, v := range requiredType {
-		if strings.HasSuffix(strings.ToLower(fileHeader.Filename), "."+strings.ToLower(v)) {
-			validType = true
+func (f *filing) CheckUploadFile(requiredSize int64, requiredSuffix /* separate with "/" like ".jpg/.png" */ string, fileHeaders ...*multipart.FileHeader) error {
+	for _, fileHeader := range fileHeaders {
+		if fileHeader.Size > requiredSize {
+			return fmt.Errorf("%s is too large: > %d MB", fileHeader.Filename, requiredSize/1000000)
 		}
-	}
-	if !validType {
-		return fmt.Errorf("%s format error: need %s", fileHeader.Filename, strings.Join(requiredType, "/"))
+		if !strings.Contains(requiredSuffix, f.SuffixOfFile(fileHeader)) {
+			return fmt.Errorf("%s format error: need %s", fileHeader.Filename, requiredSuffix)
+		}
 	}
 	return nil
 }
 
 //SaveUploadFile 保存上传文件
-func (f *filing) SaveUploadFile(uniqueNumber uint, filePath, savePath /*root*/ string, fileHeaders ...*multipart.FileHeader) ([]string, error) {
+func (f *filing) SaveUploadFile(uniqueNumber uint, rootDir, filePath string, fileHeaders ...*multipart.FileHeader) ([]string, error) {
 	var fileNames []string
 	for _, fileHeader := range fileHeaders {
 		fileHash, err := NewTinyTools().SHA256OfFile(fileHeader)
 		if err != nil {
 			return nil, err
 		}
-		if err := os.MkdirAll(savePath, 0777); err != nil {
+		if err := os.MkdirAll(rootDir, 0777); err != nil {
 			return nil, err
 		}
 		var newFileName string
@@ -80,7 +81,7 @@ func (f *filing) SaveUploadFile(uniqueNumber uint, filePath, savePath /*root*/ s
 			return nil, err
 		}
 		defer src.Close()
-		out, err := os.Create(savePath + newFileName)
+		out, err := os.Create(rootDir + newFileName)
 		if err != nil {
 			return nil, err
 		}
@@ -93,6 +94,18 @@ func (f *filing) SaveUploadFile(uniqueNumber uint, filePath, savePath /*root*/ s
 		fileNames = append(fileNames, filePath+newFileName)
 	}
 	return fileNames, nil
+}
+
+//DeleteUploadedFile  删除已上传文件
+func (f *filing) DeleteUploadedFile(rootDir string, filePaths ...string) error {
+	var e error
+	for _, filePath := range filePaths {
+		if err := os.Remove(rootDir + filePath); err != nil {
+			e = errors.New(e.Error() + ";" + err.Error())
+			continue
+		}
+	}
+	return e
 }
 
 //ReadDirItems 递归遍历目录项
