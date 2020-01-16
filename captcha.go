@@ -10,6 +10,7 @@ type ICaptcha interface {
 	Send(accountType, to, from, subject string, expiration int32) error
 	Get(account string) (string, error)
 	Expiration(account string) (int32, error)
+	Delete(account string) error
 }
 
 //captcha 验证码管理器
