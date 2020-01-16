@@ -1,9 +1,8 @@
 package screws
 
 import (
-	"sync"
-
 	"github.com/gorilla/websocket"
+	"sync"
 )
 
 //IWSManager 连接管理器接口

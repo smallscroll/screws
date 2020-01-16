@@ -24,15 +24,13 @@ func NewCache(hosts ...string) (ICache, error) {
 	if err := mc.Ping(); err != nil {
 		return nil, err
 	}
-	return &cache{
-		MC: mc,
-	}, nil
+	return &cache{MC: mc}, nil
 }
 
 //MSet 缓存设置
 func (c *cache) Set(key string, value []byte, flags uint32, expiration int32) error {
 	if c == nil {
-		return errors.New("Cache server error")
+		return errors.New("Cache instance is nil")
 	}
 	if err := c.MC.Set(&memcache.Item{Key: key, Value: value, Flags: flags, Expiration: expiration}); err != nil {
 		return err
@@ -43,7 +41,7 @@ func (c *cache) Set(key string, value []byte, flags uint32, expiration int32) er
 //GetValue 缓存查询
 func (c *cache) Get(key string) ([]byte, error) {
 	if c == nil {
-		return nil, errors.New("Cache server error")
+		return nil, errors.New("Cache instance is nil")
 	}
 	item, err := c.MC.Get(key)
 	if err != nil {
@@ -55,7 +53,7 @@ func (c *cache) Get(key string) ([]byte, error) {
 //GetValue 有效期查询
 func (c *cache) Expiration(key string) (int32, error) {
 	if c == nil {
-		return -1, errors.New("Cache server error")
+		return -1, errors.New("Cache instance is nil")
 	}
 	item, err := c.MC.Get(key)
 	if err != nil {
@@ -67,7 +65,7 @@ func (c *cache) Expiration(key string) (int32, error) {
 //MGet 缓存删除
 func (c *cache) Delete(key string) error {
 	if c == nil {
-		return errors.New("Cache server error")
+		return errors.New("Cache instance is nil")
 	}
 	return c.MC.Delete(key)
 }

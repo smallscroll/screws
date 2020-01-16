@@ -2,14 +2,13 @@ package screws
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	uuid "github.com/satori/go.uuid"
 	"log"
 	"net/http"
 	"sync"
 	"testing"
-
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	uuid "github.com/satori/go.uuid"
 )
 
 func TestWebsocketServer(t *testing.T) {
