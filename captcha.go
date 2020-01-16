@@ -1,6 +1,9 @@
 package screws
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 //ICaptcha 验证码管理器接口
 type ICaptcha interface {
@@ -17,16 +20,23 @@ type captcha struct {
 }
 
 //NewCaptcha 初始化验证码管理器
-func NewCaptcha(mailSender IMailSender, smsSender IAlisms, cache ICache) ICaptcha {
-	return &captcha{
-		MailSender: mailSender,
-		SmsSender:  smsSender,
-		Cache:      cache,
+func NewCaptcha(captchaMailSender IMailSender, captchaSmsSender IAlisms, cache ICache) (ICaptcha, error) {
+	if cache == nil {
+		return nil, errors.New("Cache server error")
 	}
+	return &captcha{
+		MailSender: captchaMailSender,
+		SmsSender:  captchaSmsSender,
+		Cache:      cache,
+	}, nil
+
 }
 
 //Send 验证码发送: mail/mobile
 func (c *captcha) Send(accountType, to string, from, subject string, expiration int32) error {
+	if c.Cache == nil {
+		return errors.New("Cache server error")
+	}
 	code := NewTinyTools().DigitalCaptcha()
 	switch accountType {
 	case "mail":
@@ -40,7 +50,7 @@ func (c *captcha) Send(accountType, to string, from, subject string, expiration 
 			return err
 		}
 	case "mobile":
-		if err := c.SmsSender.SendCaptcha(to, code); err != nil {
+		if err := c.SmsSender.Send(to, fmt.Sprintf(`{"code":"%s"}`, code)); err != nil {
 			return err
 		}
 	}
@@ -52,6 +62,9 @@ func (c *captcha) Send(accountType, to string, from, subject string, expiration 
 
 //Get 验证码获取
 func (c *captcha) Get(account string) (string, error) {
+	if c.Cache == nil {
+		return "", errors.New("Cache server error")
+	}
 	v, err := c.Cache.Get(account)
 	if err != nil {
 		return "", err
@@ -61,6 +74,9 @@ func (c *captcha) Get(account string) (string, error) {
 
 //Get 有效期获取
 func (c *captcha) Expiration(account string) (int32, error) {
+	if c.Cache == nil {
+		return -1, errors.New("Cache server error")
+	}
 	v, err := c.Cache.Expiration(account)
 	if err != nil {
 		return v, err
@@ -70,5 +86,8 @@ func (c *captcha) Expiration(account string) (int32, error) {
 
 //Delete 验证码删除
 func (c *captcha) Delete(account string) error {
+	if c.Cache == nil {
+		return errors.New("Cache server error")
+	}
 	return c.Cache.Delete(account)
 }

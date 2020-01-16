@@ -1,8 +1,7 @@
 package screws
 
 import (
-	"log"
-
+	"errors"
 	"github.com/bradfitz/gomemcache/memcache"
 )
 
@@ -20,18 +19,21 @@ type cache struct {
 }
 
 //NewCache 初始化缓存器
-func NewCache(hosts ...string) ICache {
+func NewCache(hosts ...string) (ICache, error) {
 	mc := memcache.New(hosts...)
 	if err := mc.Ping(); err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
 	return &cache{
 		MC: mc,
-	}
+	}, nil
 }
 
 //MSet 缓存设置
 func (c *cache) Set(key string, value []byte, flags uint32, expiration int32) error {
+	if c == nil {
+		return errors.New("Cache server error")
+	}
 	if err := c.MC.Set(&memcache.Item{Key: key, Value: value, Flags: flags, Expiration: expiration}); err != nil {
 		return err
 	}
@@ -40,6 +42,9 @@ func (c *cache) Set(key string, value []byte, flags uint32, expiration int32) er
 
 //GetValue 缓存查询
 func (c *cache) Get(key string) ([]byte, error) {
+	if c == nil {
+		return nil, errors.New("Cache server error")
+	}
 	item, err := c.MC.Get(key)
 	if err != nil {
 		return nil, err
@@ -49,6 +54,9 @@ func (c *cache) Get(key string) ([]byte, error) {
 
 //GetValue 有效期查询
 func (c *cache) Expiration(key string) (int32, error) {
+	if c == nil {
+		return -1, errors.New("Cache server error")
+	}
 	item, err := c.MC.Get(key)
 	if err != nil {
 		return -1, err
@@ -58,5 +66,8 @@ func (c *cache) Expiration(key string) (int32, error) {
 
 //MGet 缓存删除
 func (c *cache) Delete(key string) error {
+	if c == nil {
+		return errors.New("Cache server error")
+	}
 	return c.MC.Delete(key)
 }

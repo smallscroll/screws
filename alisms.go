@@ -3,7 +3,6 @@ package screws
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
@@ -11,7 +10,7 @@ import (
 
 //IAlisms 阿里短信接口
 type IAlisms interface {
-	SendCaptcha(receiver, content string) error
+	Send(phoneNumbers, templateParam string) error
 }
 
 //NewAlisms 初始化阿里短信
@@ -29,7 +28,7 @@ type alismsSender struct {
 	AccessKeyID     string //AccessKeyID
 	AccessKeySecret string //AccessKeySecret
 	SignName        string //短信签名
-	TemplateCode    string //短信模板
+	TemplateCode    string //模板编号
 }
 
 //alismsReply 调用返回
@@ -41,7 +40,7 @@ type alismsReply struct {
 }
 
 //SendCaptcha 验证码
-func (as *alismsSender) SendCaptcha(phoneNumbers, content string) error {
+func (as *alismsSender) Send(phoneNumbers, templateParam string) error {
 	client, err := sdk.NewClientWithAccessKey("cn-hangzhou", as.AccessKeyID, as.AccessKeySecret)
 	if err != nil {
 		return err
@@ -56,7 +55,7 @@ func (as *alismsSender) SendCaptcha(phoneNumbers, content string) error {
 	request.QueryParams["PhoneNumbers"] = phoneNumbers
 	request.QueryParams["SignName"] = as.SignName
 	request.QueryParams["TemplateCode"] = as.TemplateCode
-	request.QueryParams["TemplateParam"] = fmt.Sprintf(`{"code":"%s"}`, content)
+	request.QueryParams["TemplateParam"] = templateParam
 
 	response, err := client.ProcessCommonRequest(request)
 	if err != nil {
