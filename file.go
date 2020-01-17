@@ -3,7 +3,6 @@ package screws
 import (
 	"errors"
 	"fmt"
-	uuid "github.com/satori/go.uuid"
 	"io"
 	"log"
 	"mime/multipart"
@@ -65,8 +64,7 @@ func (f *filing) SaveUploadFile(uniqueName bool, rootDir, filePath string, fileH
 	for _, fileHeader := range fileHeaders {
 		var newFileName string
 		if uniqueName {
-			s := strings.Split(uuid.NewV4().String(), "-")
-			newFileName = strings.Join(s, "") + f.SuffixOfFile(fileHeader)
+			newFileName = NewTinyTools().UUIDV4() + f.SuffixOfFile(fileHeader)
 		} else {
 			fileHash, err := NewTinyTools().SHA1OfFile(fileHeader)
 			if err != nil {

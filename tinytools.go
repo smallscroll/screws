@@ -10,12 +10,16 @@ import (
 	"mime/multipart"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 //ITinyTools 小工具接口
 type ITinyTools interface {
 	DigitalCaptcha() string
+	UUIDV4() string
 	SHA256OfString(str string) string
 	SHA1OfString(str string) string
 	SHA256OfFile(fileHeader *multipart.FileHeader) (string, error)
@@ -41,6 +45,12 @@ type tinyTools struct {
 func (t *tinyTools) DigitalCaptcha() string {
 	rand.Seed(time.Now().UnixNano())
 	return fmt.Sprintf("%d", rand.Intn(899999)+100000)
+}
+
+//UUID  UUID/V4
+func (t *tinyTools) UUIDV4() string {
+	s := strings.Split(uuid.NewV4().String(), "-")
+	return strings.Join(s, "")
 }
 
 //HashOfString 计算字符串哈希
