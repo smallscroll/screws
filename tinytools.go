@@ -1,6 +1,7 @@
 package screws
 
 import (
+	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -16,7 +17,9 @@ import (
 type ITinyTools interface {
 	DigitalCaptcha() string
 	SHA256OfString(str string) string
+	SHA1OfString(str string) string
 	SHA256OfFile(fileHeader *multipart.FileHeader) (string, error)
+	SHA1OfFile(fileHeader *multipart.FileHeader) (string, error)
 	StringsToFloats(strings ...string) ([]float64, error)
 	CheckText(str, exp string) bool
 	CheckDatetime(str ...string) ([]*time.Time, error)
@@ -45,6 +48,11 @@ func (t *tinyTools) SHA256OfString(str string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(str)))
 }
 
+//HashOfString 计算字符串哈希
+func (t *tinyTools) SHA1OfString(str string) string {
+	return fmt.Sprintf("%x", sha1.Sum([]byte(str)))
+}
+
 //HashOfFile 计算文件哈希
 func (t *tinyTools) SHA256OfFile(fileHeader *multipart.FileHeader) (string, error) {
 	src, err := fileHeader.Open()
@@ -53,6 +61,21 @@ func (t *tinyTools) SHA256OfFile(fileHeader *multipart.FileHeader) (string, erro
 	}
 	defer src.Close()
 	sha := sha256.New()
+	_, err = io.Copy(sha, src)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(sha.Sum(nil)), nil
+}
+
+//HashOfFile 计算文件哈希
+func (t *tinyTools) SHA1OfFile(fileHeader *multipart.FileHeader) (string, error) {
+	src, err := fileHeader.Open()
+	if err != nil {
+		return "", err
+	}
+	defer src.Close()
+	sha := sha1.New()
 	_, err = io.Copy(sha, src)
 	if err != nil {
 		return "", err
