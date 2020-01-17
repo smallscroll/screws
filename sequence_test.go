@@ -9,7 +9,7 @@ import (
 )
 
 func TestSequence(t *testing.T) {
-	testSequence := NewSequence()
+	testSequence := StartAndInitializeASequenceService()
 	wg := sync.WaitGroup{}
 	wg.Add(10000)
 	for i := 0; i < 10000; i++ {

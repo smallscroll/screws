@@ -12,8 +12,8 @@ type ISequence interface {
 	Get() int64
 }
 
-//NewSequence 启动并初始化一个序列服务
-func NewSequence() ISequence {
+//StartAndInitializeASequenceService 启动并初始化一个序列服务
+func StartAndInitializeASequenceService() ISequence {
 	s := &sequence{
 		BaseValue: time.Now().Unix(),
 		LastValue: 0,

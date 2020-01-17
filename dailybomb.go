@@ -10,8 +10,8 @@ type IDailyBomb interface {
 	Defuse()
 }
 
-//NewDailyBomb ...
-func NewDailyBomb(function func(), clock [3]int) IDailyBomb {
+//FixingADailyBomb ...
+func FixingADailyBomb(function func(), clock [3]int) IDailyBomb {
 	d := &dailyBomb{
 		Powder:  function,
 		Clock:   clock,
