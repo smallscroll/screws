@@ -3,6 +3,7 @@ package screws
 import (
 	"errors"
 	"fmt"
+	uuid "github.com/satori/go.uuid"
 	"io"
 	"log"
 	"mime/multipart"
@@ -16,7 +17,7 @@ type IFiling interface {
 	SuffixOfFile(fileHeader *multipart.FileHeader) string
 	DateDir(dir string) string
 	CheckUploadFile(requiredSize int64, requiredSuffix /* separate with "/" like ".jpg/.png" */ string, fileHeaders ...*multipart.FileHeader) error
-	SaveUploadFile(rootDir, filePath string, fileHeaders ...*multipart.FileHeader) ([]string, error)
+	SaveUploadFile(uniqueName bool, rootDir, filePath string, fileHeaders ...*multipart.FileHeader) ([]string, error)
 	DeleteUploadedFile(rootDir string, filePaths ...string) error
 	ReadDirItems(dir string, s *[]string) error
 }
@@ -58,16 +59,21 @@ func (f *filing) CheckUploadFile(requiredSize int64, requiredSuffix /* separate 
 }
 
 //SaveUploadFile 保存上传文件
-func (f *filing) SaveUploadFile(rootDir, filePath string, fileHeaders ...*multipart.FileHeader) ([]string, error) {
+func (f *filing) SaveUploadFile(uniqueName bool, rootDir, filePath string, fileHeaders ...*multipart.FileHeader) ([]string, error) {
 	var savePath = rootDir + filePath
 	var fileNames []string
 	for _, fileHeader := range fileHeaders {
 		var newFileName string
-		fileHash, err := NewTinyTools().SHA1OfFile(fileHeader)
-		if err != nil {
-			return nil, err
+		if uniqueName {
+			s := strings.Split(uuid.NewV4().String(), "-")
+			newFileName = strings.Join(s, "") + f.SuffixOfFile(fileHeader)
+		} else {
+			fileHash, err := NewTinyTools().SHA1OfFile(fileHeader)
+			if err != nil {
+				return nil, err
+			}
+			newFileName = fileHash + f.SuffixOfFile(fileHeader)
 		}
-		newFileName = fileHash + f.SuffixOfFile(fileHeader)
 
 		if err := os.MkdirAll(savePath, 0777); err != nil {
 			return nil, err
