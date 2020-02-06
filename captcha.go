@@ -50,7 +50,7 @@ func (c *captcha) Send(accountType, to string, from, subject string, expiration 
 		if expiration == 0 {
 			expiration = 1800
 		}
-		if err := c.MailSender.SendWithTLS(from, to, subject, fmt.Sprintf("您的验证码是： %s，%d分钟内有效。", code, expiration/60)); err != nil {
+		if err := c.MailSender.SendWithTLS(from, to, subject, fmt.Sprintf("验证码：%s", code)); err != nil {
 			return err
 		}
 	case "mobile":

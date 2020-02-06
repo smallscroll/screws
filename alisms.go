@@ -38,7 +38,7 @@ type alismsReply struct {
 	Code      string
 }
 
-//SendCaptcha 验证码
+//Send 发送
 func (as *alismsSender) Send(phoneNumbers, templateParam string) error {
 	client, err := sdk.NewClientWithAccessKey("cn-hangzhou", as.AccessKeyID, as.AccessKeySecret)
 	if err != nil {
