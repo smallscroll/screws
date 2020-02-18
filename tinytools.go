@@ -118,7 +118,7 @@ func (t *tinyTools) CheckText(str, exp string) bool {
 func (t *tinyTools) CheckDatetime(str ...string) ([]*time.Time, error) {
 	var times []*time.Time
 	for _, v := range str {
-		t, err := time.Parse("2006-01-02 15:04:05", v)
+		t, err := time.ParseInLocation("2006-01-02 15:04:05", v, time.Local)
 		if err != nil {
 			return nil, err
 		}
@@ -145,11 +145,11 @@ func (t *tinyTools) CheckTimestamp(str ...string) ([]*time.Time, error) {
 func (t *tinyTools) CheckDatetimeToTimestamp(str ...string) ([]int64, error) {
 	var timestamps []int64
 	for _, v := range str {
-		time, err := time.ParseInLocation("2006-01-02 15:04:05", v, time.Local)
+		t, err := time.ParseInLocation("2006-01-02 15:04:05", v, time.Local)
 		if err != nil {
 			return nil, err
 		}
-		timestamps = append(timestamps, time.Unix())
+		timestamps = append(timestamps, t.Unix())
 	}
 	return timestamps, nil
 }
