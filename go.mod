@@ -1,4 +1,4 @@
-module github.com/astropages/screws
+module github.com/smallscroll/screws
 
 go 1.13
 
