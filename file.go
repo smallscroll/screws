@@ -73,7 +73,7 @@ func (f *filing) SaveUploadFile(uniqueName bool, rootDir, filePath string, fileH
 			newFileName = fileHash + f.SuffixOfFile(fileHeader)
 		}
 
-		if err := os.MkdirAll(savePath, 0600); err != nil {
+		if err := os.MkdirAll(savePath, 0700); err != nil {
 			return nil, err
 		}
 		src, err := fileHeader.Open()
