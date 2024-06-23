@@ -1,11 +1,12 @@
 package screws
 
 import (
-	"github.com/gorilla/websocket"
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
-//IWSManager 连接管理器接口
+// IWSManager 连接管理器接口
 type IWSManager interface {
 	Start()
 	Broadcast(message []byte)
@@ -15,7 +16,7 @@ type IWSManager interface {
 	addr() *wsManager
 }
 
-//IWSClient 客户端接口
+// IWSClient 客户端接口
 type IWSClient interface {
 	Reading()
 	Writing()
@@ -32,7 +33,7 @@ func NewWSManager() IWSManager {
 	}
 }
 
-//NewWSClient 初始化客户端(连接ID，连接，管理器)
+// NewWSClient 初始化客户端(连接ID，连接，管理器)
 func NewWSClient(id string, conn *websocket.Conn, manager IWSManager) IWSClient {
 	wsClient := &wsClient{
 		ID:        id,
@@ -46,7 +47,7 @@ func NewWSClient(id string, conn *websocket.Conn, manager IWSManager) IWSClient 
 	return wsClient
 }
 
-//wsManager  管理器
+// wsManager  管理器
 type wsManager struct {
 	Clients       *sync.Map
 	BroadcastChan chan []byte
@@ -55,7 +56,7 @@ type wsManager struct {
 	Lock          *sync.RWMutex
 }
 
-//wsClient 客户端
+// wsClient 客户端
 type wsClient struct {
 	ID        string
 	Socket    *websocket.Conn
@@ -85,7 +86,7 @@ func (m *wsManager) Start() {
 	}
 }
 
-//Add 添加客户端到连接管理器
+// Add 添加客户端到连接管理器
 func (m *wsManager) addClient(client *wsClient) {
 	m.AddChan <- client
 }
@@ -147,13 +148,11 @@ func (c *wsClient) Writing() {
 		c.Socket.Close()
 	}()
 	for {
-		select {
-		case message, ok := <-c.SendChan:
-			if !ok {
-				c.Socket.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-			c.Socket.WriteMessage(websocket.TextMessage, message)
+		message, ok := <-c.SendChan
+		if !ok {
+			c.Socket.WriteMessage(websocket.CloseMessage, []byte{})
+			return
 		}
+		c.Socket.WriteMessage(websocket.TextMessage, message)
 	}
 }

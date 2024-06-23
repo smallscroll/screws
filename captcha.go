@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-//ICaptcha 验证码管理器接口
+// ICaptcha 验证码管理器接口
 type ICaptcha interface {
 	Send(accountType, to, from, subject string, expiration int32) error
 	Get(account string) (string, error)
@@ -13,17 +13,17 @@ type ICaptcha interface {
 	Delete(account string) error
 }
 
-//captcha 验证码管理器
+// captcha 验证码管理器
 type captcha struct {
 	MailSender IMailSender
 	SmsSender  IAlisms
 	Cache      ICache
 }
 
-//NewCaptcha 初始化验证码管理器
+// NewCaptcha 初始化验证码管理器
 func NewCaptcha(captchaMailSender IMailSender, captchaSmsSender IAlisms, cache ICache) (ICaptcha, error) {
 	if cache == nil {
-		return nil, errors.New("Cache instance is nil")
+		return nil, errors.New("cache instance is nil")
 	}
 	return &captcha{
 		MailSender: captchaMailSender,
@@ -33,10 +33,10 @@ func NewCaptcha(captchaMailSender IMailSender, captchaSmsSender IAlisms, cache I
 
 }
 
-//Send 验证码发送: mail/mobile
+// Send 验证码发送: mail/mobile
 func (c *captcha) Send(accountType, to string, from, subject string, expiration int32) error {
 	if c.Cache == nil {
-		return errors.New("Cache instance is nil")
+		return errors.New("cache instance is nil")
 	}
 	code := NewTinyTools().DigitalCaptcha()
 	switch accountType {
@@ -58,7 +58,7 @@ func (c *captcha) Send(accountType, to string, from, subject string, expiration 
 			return err
 		}
 	default:
-		return errors.New("Captcha send: accountType error")
+		return errors.New("captcha send: accountType error")
 	}
 	if err := c.Cache.Set(to, []byte(code), 0, expiration); err != nil {
 		return err
@@ -66,10 +66,10 @@ func (c *captcha) Send(accountType, to string, from, subject string, expiration 
 	return nil
 }
 
-//Get 验证码获取
+// Get 验证码获取
 func (c *captcha) Get(account string) (string, error) {
 	if c.Cache == nil {
-		return "", errors.New("Cache instance is nil")
+		return "", errors.New("cache instance is nil")
 	}
 	v, err := c.Cache.Get(account)
 	if err != nil {
@@ -78,10 +78,10 @@ func (c *captcha) Get(account string) (string, error) {
 	return string(v), nil
 }
 
-//Get 有效期获取
+// Get 有效期获取
 func (c *captcha) Expiration(account string) (int32, error) {
 	if c.Cache == nil {
-		return -1, errors.New("Cache instance is nil")
+		return -1, errors.New("cache instance is nil")
 	}
 	v, err := c.Cache.Expiration(account)
 	if err != nil {
@@ -90,10 +90,10 @@ func (c *captcha) Expiration(account string) (int32, error) {
 	return v, nil
 }
 
-//Delete 验证码删除
+// Delete 验证码删除
 func (c *captcha) Delete(account string) error {
 	if c.Cache == nil {
-		return errors.New("Cache instance is nil")
+		return errors.New("cache instance is nil")
 	}
 	return c.Cache.Delete(account)
 }

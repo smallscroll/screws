@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-//IFiling 文件处理器接口
+// IFiling 文件处理器接口
 type IFiling interface {
 	SuffixOfFile(fileHeader *multipart.FileHeader) string
 	DateDir(dir string) string
@@ -21,16 +21,16 @@ type IFiling interface {
 	ReadDirItems(dir string, s *[]string) error
 }
 
-//NewFiling 初始化文件处理器
+// NewFiling 初始化文件处理器
 func NewFiling() IFiling {
 	return &filing{}
 }
 
-//filing 文件处理器
+// filing 文件处理器
 type filing struct {
 }
 
-//SuffixOfFile 获取文件后缀
+// SuffixOfFile 获取文件后缀
 func (f *filing) SuffixOfFile(fileHeader *multipart.FileHeader) string {
 	s := strings.Split(fileHeader.Filename, ".")
 	if len(s) < 2 {
@@ -39,12 +39,12 @@ func (f *filing) SuffixOfFile(fileHeader *multipart.FileHeader) string {
 	return "." + strings.ToLower(s[len(s)-1])
 }
 
-//DateDir 日期目录: "/dir/2006/01"
+// DateDir 日期目录: "/dir/2006/01"
 func (f *filing) DateDir(dir string) string {
 	return dir + "/" + time.Now().Format("2006/01")
 }
 
-//CheckUploadFile 检查上传文件：doc/img
+// CheckUploadFile 检查上传文件：doc/img
 func (f *filing) CheckUploadFile(requiredSize int64, requiredSuffix /* separate with "/" like ".jpg/.png" */ string, fileHeaders ...*multipart.FileHeader) error {
 	for _, fileHeader := range fileHeaders {
 		if fileHeader.Size > requiredSize {
@@ -57,7 +57,7 @@ func (f *filing) CheckUploadFile(requiredSize int64, requiredSuffix /* separate 
 	return nil
 }
 
-//SaveUploadFile 保存上传文件
+// SaveUploadFile 保存上传文件
 func (f *filing) SaveUploadFile(uniqueName bool, rootDir, filePath string, fileHeaders ...*multipart.FileHeader) ([]string, error) {
 	var savePath = rootDir + filePath
 	var fileNames []string
@@ -73,7 +73,7 @@ func (f *filing) SaveUploadFile(uniqueName bool, rootDir, filePath string, fileH
 			newFileName = fileHash + f.SuffixOfFile(fileHeader)
 		}
 
-		if err := os.MkdirAll(savePath, 0777); err != nil {
+		if err := os.MkdirAll(savePath, 0600); err != nil {
 			return nil, err
 		}
 		src, err := fileHeader.Open()
@@ -96,7 +96,7 @@ func (f *filing) SaveUploadFile(uniqueName bool, rootDir, filePath string, fileH
 	return fileNames, nil
 }
 
-//DeleteUploadedFile  删除已上传文件
+// DeleteUploadedFile  删除已上传文件
 func (f *filing) DeleteUploadedFile(rootDir string, filePaths ...string) error {
 	e := ""
 	for _, filePath := range filePaths {
@@ -111,7 +111,7 @@ func (f *filing) DeleteUploadedFile(rootDir string, filePaths ...string) error {
 	return nil
 }
 
-//ReadDirItems 递归遍历目录项
+// ReadDirItems 递归遍历目录项
 func (f *filing) ReadDirItems(dir string, s *[]string) error {
 	file, err := os.OpenFile(dir, os.O_RDONLY, os.ModeDir)
 	if err != nil {
@@ -119,6 +119,10 @@ func (f *filing) ReadDirItems(dir string, s *[]string) error {
 		return err
 	}
 	fileInfos, err := file.Readdir(-1)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	for _, fileInfo := range fileInfos {
 		if fileInfo.IsDir() {
 			newDir := dir + "/" + fileInfo.Name()
